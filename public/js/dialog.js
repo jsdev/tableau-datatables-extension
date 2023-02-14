@@ -1,7 +1,7 @@
 'use strict';
 
 var uiSettings = [
-   'compact',
+  'compact',
   'hover',
   'nowrap',
   'order-column',
@@ -19,11 +19,6 @@ var pluginSettings = [
 ];
 
 (function () {
-
-  $(document).ready(function () {
-
-  });
-  
   document.addEventListener('DOMContentLoaded', wireExtension, false);
 
   function wireExtension () {
@@ -134,7 +129,7 @@ var pluginSettings = [
     $('#sort-it ol').sortable({
       onDrop: function (item) {
         $(item).removeClass("dragged").removeAttr("style");
-        $("body").removeClass("dragging");
+        document.body.classList.remove('dragging');
       }
     });
   }
@@ -147,7 +142,7 @@ var pluginSettings = [
   // This function saves then settings and then closes then closes the dialogue
   // window.
   function saveButton() {
-
+    
     // Data settings
     tableau.extensions.settings.set("worksheet", $("#selectWorksheet").val());
     tableau.extensions.settings.set("max_no_records", $("#max_no_records").val());
@@ -157,11 +152,7 @@ var pluginSettings = [
     // Also saves the individual Y and N so that we can restore the settings when you
     // open the configuration dialogue.
     // https://datatables.net/examples/styling/
-    var tableClasses = "";
-
-    uiSettings.filter(setting => document.getElementById(setting).checked).join(' ');
-
-    tableau.extensions.settings.set("table-classes", tableClass);
+    tableau.extensions.settings.set('table-classes',  uiSettings.filter(setting => document.getElementById(setting).checked).join(' '));
 
     // Saves the individual Y and N for the plugin settings so that we can restore this
     // when you open the configuration dialogue.
@@ -170,7 +161,7 @@ var pluginSettings = [
     [].concat(uiSettings).concat(pluginSettings).forEach(setting => {
       tableau.extensions.settings.set(
         setting,
-        document.getElementById(setting).checked ? "Y" : "N"
+        document.getElementById(setting).checked ? 'Y' : 'N'
       );
     });
 
@@ -180,7 +171,7 @@ var pluginSettings = [
     // --- column_order will look like: 3|1|2
     // --- column_name will look like: SUM(Sales)|Country|Region
     var columns = [...document.querySelectorAll('#sort-it input')].map(column => ({
-      column_order: column.getAttribute("col_num"),
+      column_order: column.getAttribute('col_num'),
       column_name: column.value || column.id
     }));
      
@@ -192,12 +183,12 @@ var pluginSettings = [
     tableau.extensions.settings.set("col-count-row-header", $('#col-count-row-header').val());
 
     // We save the column order and column name variables in the UI Namespace.
-    tableau.extensions.settings.set("column_order", column_order);
-    tableau.extensions.settings.set("column_names", column_name);
+    tableau.extensions.settings.set('column_order', column_order);
+    tableau.extensions.settings.set('column_names', column_name);
 
     // Call saveAsync to save the settings before calling closeDialog.
     tableau.extensions.settings.saveAsync().then((currentSettings) => {
-      tableau.extensions.ui.closeDialog("10");
+      tableau.extensions.ui.closeDialog('10');
     });
   }
 })();
