@@ -157,16 +157,9 @@ var pluginSettings = [
     // Also saves the individual Y and N so that we can restore the settings when you
     // open the configuration dialogue.
     // https://datatables.net/examples/styling/
-    var tableClass = "";
+    var tableClasses = "";
 
-    uiSettings.forEach(setting => {
-      if (document.getElementById(setting).checked) {
-        tableClass += ` ${setting}`;
-        tableau.extensions.settings.set(setting, "Y");
-      } else {
-        tableau.extensions.settings.set(setting, "N");
-      }
-    });
+    uiSettings.filter(setting => document.getElementById(setting).checked).join(' ');
 
     tableau.extensions.settings.set("table-classes", tableClass);
 
@@ -174,7 +167,7 @@ var pluginSettings = [
     // when you open the configuration dialogue.
     // https://datatables.net/extensions/buttons/examples/html5/simple.html
 
-    pluginSettings.forEach(setting => {
+    [].concat(uiSettings).concat(pluginSettings).forEach(setting => {
       tableau.extensions.settings.set(
         setting,
         document.getElementById(setting).checked ? "Y" : "N"
@@ -186,32 +179,14 @@ var pluginSettings = [
     // there so that you get the third, first and then second column, you would get: 
     // --- column_order will look like: 3|1|2
     // --- column_name will look like: SUM(Sales)|Country|Region
-    var column_order = "";
-    var column_name = "";
-    var counter = 0;
-    $("#sort-it").find("input").each(function (column) {
-      // This handles the column order
-      if (counter == 0) {
-        column_order = $(this).attr("col_num");
-      } else {
-        column_order = column_order + "|" + $(this).attr("col_num");
-      }
-      // This handles the column name.
-      if (counter == 0) {
-        if ($(this).val().length > 0) {
-          column_name = $(this).val();
-        } else {
-          column_name = $(this).attr("id");
-        }
-      } else {
-        if ($(this).val().length > 0) {
-          column_name = column_name + "|" + $(this).val();
-        } else {
-          column_name = column_name + "|" + $(this).attr("id");
-        }
-      }
-      counter++;
-    });
+    var columns = [...document.querySelectorAll('#sort-it input')].map(column => ({
+      column_order: column.getAttribute("col_num"),
+      column_name: column.value || column.id
+    }));
+     
+    var column_order = columns.map(o -> o.column_order).join('|');
+    var column_name = columns.map(o -> o.column_name).join('|');
+    
 
     // row header setting
     tableau.extensions.settings.set("col-count-row-header", $('#col-count-row-header').val());
