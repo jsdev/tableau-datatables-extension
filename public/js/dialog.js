@@ -1,6 +1,6 @@
 'use strict';
 
-var uiSettings = [
+const uiSettings = [
   'compact',
   'hover',
   'nowrap',
@@ -10,7 +10,7 @@ var uiSettings = [
   'include-table-name'
 ];
 
-var pluginSettings = [
+const pluginSettings = [
   'export-clipboard',
   'export-excel',
   'export-csv',
