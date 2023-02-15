@@ -1,5 +1,29 @@
 'use strict';
 
+const pluginSettings = [
+  'export-clipboard',
+  'export-excel',
+  'export-csv',
+  'export-pdf',
+  'export-print'
+];
+
+const lookup = {
+  "export-clipboard": 'copy',
+  "export-csv": 'csv',
+  "export-excel": 'excel',
+  "export-pdf": 'pdf',
+  "export-print": 'print'
+};
+
+const label = {
+  'copy': 'Copy',
+  'csv': 'CSV',
+  'excel': 'Excel',
+  'pdf': 'PDF',
+  'print': 'Print'
+};
+
 (function () {
 
   // Creates a global table reference for future use.
@@ -127,57 +151,34 @@
         }
 
         // Read the Settings and get the single string for UI settings.
-        var tableClass = tableau.extensions.settings.get("table-classes");
+        const tableClass = tableau.extensions.settings.get("table-classes");
         $("#datatable").attr('class', '')
         $("#datatable").addClass(tableClass);
 
         // Read the Settings and create an array for the Buttons.
-        var buttons = [];
-        var clipboard = tableau.extensions.settings.get("export-clipboard");
-        if (clipboard == "Y") {
-          buttons.push('copy');
-        }
-        var csv = tableau.extensions.settings.get("export-csv");
-        if (csv == "Y") {
-          buttons.push('csv');
-        }
-        var excel = tableau.extensions.settings.get("export-excel");
-        if (excel == "Y") {
-          buttons.push('excel');
-        }
-        var pdf = tableau.extensions.settings.get("export-pdf");
-        if (pdf == "Y") {
-          buttons.push('pdf');
-        }
-        var print = tableau.extensions.settings.get("export-print");
-        if (print == "Y") {
-          buttons.push('print');
-        }
+        const buttons = pluginSettings.filter(plugin => tableau.extensions.settings.get(plugin) === 'Y').map(plugin => lookup[plugin]);
 
         // If there are 1 or more Export options ticked, then we will add the dom: 'Bfrtip'
         // Else leave this out.
+
+        const config = {
+          data: tableData,
+          columns: data,
+          responsive: true,
+          bAutoWidth: false,
+          initComplete: datatableInitCallback,
+          drawCallback: datatableDrawCallback,
+          oLanguage: datatableLangObj
+        };
+
         if (buttons.length > 0) {
           tableReference = $('#datatable').DataTable({
             dom: 'Bfrtip',
-            data: tableData,
-            columns: data,
-            responsive: true,
             buttons: buttons,
-            bAutoWidth: false,
-            initComplete: datatableInitCallback,
-            drawCallback: datatableDrawCallback,
-            oLanguage: datatableLangObj
+            ...config
           });
         } else {
-          tableReference = $('#datatable').DataTable({
-            data: tableData,
-            columns: data,
-            responsive: true,
-            bAutoWidth: false,
-            initComplete: datatableInitCallback,
-            drawCallback: datatableDrawCallback,
-            oLanguage: datatableLangObj
-          });
+          tableReference = $('#datatable').DataTable(config);
         }
       })
     } else {
@@ -215,53 +216,29 @@
         $("#datatable").addClass(tableClass);
 
         // Read the Settings and create an array for the Buttons.
-        var buttons = [];
-        var clipboard = tableau.extensions.settings.get("export-clipboard");
-        if (clipboard == "Y") {
-          buttons.push('copy');
-        }
-        var csv = tableau.extensions.settings.get("export-csv");
-        if (csv == "Y") {
-          buttons.push('csv');
-        }
-        var excel = tableau.extensions.settings.get("export-excel");
-        if (excel == "Y") {
-          buttons.push('excel');
-        }
-        var pdf = tableau.extensions.settings.get("export-pdf");
-        if (pdf == "Y") {
-          buttons.push('pdf');
-        }
-        var print = tableau.extensions.settings.get("export-print");
-        if (print == "Y") {
-          buttons.push('print');
-        }
+        const buttons = pluginSettings.filter(plugin => tableau.extensions.settings.get(plugin) === 'Y').map(plugin => lookup[plugin]);
+
+        const config = {
+          data: tableData,
+          columns: data,
+          responsive: true,
+          bAutoWidth: false,
+          initComplete: datatableInitCallback,
+          drawCallback: datatableDrawCallback,
+          oLanguage: datatableLangObj
+        };
 
         // If there are 1 or more Export options ticked, then we will add the dom: 'Bfrtip'
         // Else leave this out.
         if (buttons.length > 0) {
           tableReference = $('#datatable').DataTable({
-            dom: 'Bfrtip',
-            data: tableData,
-            columns: data,
-            responsive: true,
             buttons: buttons,
-            bAutoWidth: false,
+            dom: 'Bfrtip',
             rowGroup: true,
-            initComplete: datatableInitCallback,
-            drawCallback: datatableDrawCallback,
-            oLanguage: datatableLangObj
+            ...config
           });
         } else {
-          tableReference = $('#datatable').DataTable({
-            data: tableData,
-            columns: data,
-            responsive: true,
-            bAutoWidth: false,
-            initComplete: datatableInitCallback,
-            drawCallback: datatableDrawCallback,
-            oLanguage: datatableLangObj
-          });
+          tableReference = $('#datatable').DataTable(config);
         }
       })
     }
@@ -272,64 +249,38 @@
     var table = settings.oInstance.api();
     var $node = $(table.table().node());
 
-    var sheetName = tableau.extensions.settings.get('worksheet');
-    var includeTableName = (tableau.extensions.settings.get('include-table-name') == 'Y' ? true : false);
+    const sheetName = tableau.extensions.settings.get('worksheet');
+    const includeTableName = tableau.extensions.settings.get('include-table-name') === 'Y';
 
     // add screen reader only h2
     $('#datatable_wrapper').prepend('<h2 class="sr-only">'+sheetName+' | Data Table Extension | Tableau</h2>');
-
 
     // add screen readers only caption for table
     // make changes of caption announced by screen reader - used to update caption when sorting changed
     $node.prepend($('<caption id="datatable_caption" class="sr-only" role="alert" aria-live="polite">'+sheetName+'</caption>'));
 
-
-
     // update buttons aria-label to include information about table it is bound to
     table.buttons().each(function(item){
-      var $buttonNode = $(item.node);
+      const $buttonNode = $(item.node);
+      const match = ['copy', 'csv', 'excel', 'pdf', 'print'].find(o => $buttonNode.hasClass(`buttons-${o}`));
 
-      var ariaLabel = '';
-
-      if ($buttonNode.hasClass('buttons-copy')) {
-        ariaLabel = 'Copy'+(includeTableName ? ' '+sheetName : '')+' table';
-      }
-      else if ($buttonNode.hasClass('buttons-csv')) {
-        ariaLabel = 'CSV of'+(includeTableName ? ' '+sheetName : '')+' table';
-      }
-      else if ($buttonNode.hasClass('buttons-excel')) {
-        ariaLabel = 'Excel of'+(includeTableName ? ' '+sheetName : '')+' table';
-      }
-      else if ($buttonNode.hasClass('buttons-pdf')) {
-        ariaLabel = 'PDF of'+(includeTableName ? ' '+sheetName : '')+' table';
-      }
-      else if ($buttonNode.hasClass('buttons-print')) {
-        ariaLabel = 'Print'+(includeTableName ? ' '+sheetName : '')+' table';
-      }
-
-      if (ariaLabel) {
-        $buttonNode.attr('aria-label', ariaLabel);
-      }
+      buttonNode.attr('aria-label', `${label[match]} of${includeTableName ? ' ' + sheetName : ''} table`);
     });
-
 
     // update search input label
     var $searchEl = $('#datatable_filter input');
     $searchEl.attr('aria-label', 'Search'+(includeTableName ? ' '+sheetName : '')+' table');
-
 
     // set extension's iframe title
     if (window.frameElement) {
       window.frameElement.title = sheetName;
     }
 
-
     // set html lang attribute
     document.documentElement.setAttribute('lang', tableau.extensions.environment.language);
   }
 
   function datatableDrawCallback(settings) {
-
     var table = settings.oInstance.api();
     var $node = $(table.table().node());
 
@@ -453,7 +404,6 @@
 
   // This is called when you click on the Configure button.
   function configure() {
-
     const popupUrl = `./dialog.html`;
 
     let input = "";
@@ -464,13 +414,12 @@
     }).catch((error) => {
       // One expected error condition is when the popup is closed by the user (meaning the user
       // clicks the 'X' in the top right of the dialog).  This can be checked for like so:
-      switch (error.errorCode) {
-        case tableau.ErrorCodes.DialogClosedByUser:
+      if (error.errorCode === tableau.ErrorCodes.DialogClosedByUser) {
           console.log("Dialog was closed by user");
-          break;
-        default:
-          console.error(error.message);
+          return;
       }
+
+      console.error(error.message);
     });
   }
 })();
